@@ -4,6 +4,9 @@ from geometry.primitives import Point, LineAlgorithm
 
 class LineModel:
 
+    width: int
+    height: int
+
     start_point: Point
     end_point: Point
     active_pixels: list[Point]
