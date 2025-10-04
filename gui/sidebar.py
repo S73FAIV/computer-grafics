@@ -81,8 +81,7 @@ class Sidebar(tk.Frame):
         ).pack(side="left")
         tk.Button(end_frame, command=self.update_end_point, text="Update").pack(side="left")
 
-        # Update button (optional)
-        # tk.Button(self, text="Update Line", command=self.update_line).pack(pady=5)
+        tk.Button(self, text="Draw Line", command=self.draw_line).pack(pady=5)
 
     def update_from_state(self) -> None:
         self.algorithm_var.set(self.state.algorithm.value)
@@ -99,3 +98,6 @@ class Sidebar(tk.Frame):
 
     def update_end_point(self) -> None:
         self.state.set_end_point(Point(self.end_x_var.get(), self.end_y_var.get()))
+
+    def draw_line(self) -> None:
+        self.state.draw_line()

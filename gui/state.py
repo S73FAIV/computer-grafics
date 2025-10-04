@@ -1,5 +1,6 @@
 import numpy as np
 from geometry.primitives import Point, LineAlgorithm
+import geometry.algorithms as algorithms
 
 
 class LineModel:
@@ -33,6 +34,17 @@ class LineModel:
     def notify(self) -> None:
         for callback in self.subscribers:
             callback()
+
+    def draw_line(self) -> None:
+        pixels = []
+        if self.algorithm == LineAlgorithm.SLOPE_INTERCEPT:
+            pixels = algorithms.get_pixels_with_slope_intercept(self.start_point, self.end_point)
+        elif self.algorithm == LineAlgorithm.DDA:
+            pixels = algorithms.get_pixels_with_dda(self.start_point, self.end_point)
+        elif self.algorithm == LineAlgorithm.BRESENHAM:
+            pixels = algorithms.get_pixels_with_bresenham(self.start_point, self.end_point)
+        # convert np-array to list
+        self.set_active_pixels([Point(x, y) for x, y in pixels])
 
     # setter-methods
     def set_start_point(self, point: Point) -> None:

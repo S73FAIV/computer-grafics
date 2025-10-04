@@ -19,6 +19,9 @@ class Point:
     def __str__(self):
         return f"({self.x},{self.y})"
 
+    def __repr__(self):
+        return f"Point({self.x}, {self.y})"
+
 
 class LineAlgorithm(Enum):
     SLOPE_INTERCEPT = 0
