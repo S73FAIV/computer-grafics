@@ -11,6 +11,7 @@ class Sidebar(tk.Frame):
     start_y_var: tk.IntVar
     stop_x_var: tk.IntVar
     stop_y_var: tk.IntVar
+    pixels_text: tk.Text
 
     def __init__(self, parent, state: LineModel, **kwargs):
         super().__init__(parent, **kwargs)
@@ -83,12 +84,18 @@ class Sidebar(tk.Frame):
 
         tk.Button(self, text="Draw Line", command=self.draw_line).pack(pady=5)
 
+        # active pixels
+        tk.Label(self, text="Active Pixels:").pack(pady=5)
+        self.pixels_text = tk.Text(self, height=10, width=25, state="disabled")
+        self.pixels_text.pack(pady=5, fill="x")
+
     def update_from_state(self) -> None:
         self.algorithm_var.set(self.state.algorithm.value)
         self.start_x_var.set(self.state.start_point.x)
         self.start_y_var.set(self.state.start_point.y)
         self.end_x_var.set(self.state.end_point.x)
         self.end_y_var.set(self.state.end_point.y)
+        self.update_pixel_list()
 
     def update_algorithm(self) -> None:
         self.state.set_algorithm(LineAlgorithm(self.algorithm_var.get()))
@@ -98,6 +105,14 @@ class Sidebar(tk.Frame):
 
     def update_end_point(self) -> None:
         self.state.set_end_point(Point(self.end_x_var.get(), self.end_y_var.get()))
+
+    def update_pixel_list(self) -> None:
+        """Display all active pixels in the text box."""
+        self.pixels_text.configure(state="normal")
+        self.pixels_text.delete("1.0", tk.END)
+        for pixel in self.state.active_pixels:
+            self.pixels_text.insert(tk.END, f"({pixel.x}, {pixel.y});")
+        self.pixels_text.configure(state="disabled")
 
     def draw_line(self) -> None:
         self.state.draw_line()
