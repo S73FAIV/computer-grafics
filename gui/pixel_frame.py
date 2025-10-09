@@ -65,10 +65,11 @@ class PixelFrame(tk.Frame):
         # reset canvas
         self.img = tk.PhotoImage(width=self.width, height=self.height)
         self.img_big = self.img.zoom(self.scale)
+        color = self.state.line_color
         # Optional: draw a temporary pixel for feedback
         for pixel in self.state.active_pixels:
             frame_x, frame_y = self.coords_to_frame(pixel.x, pixel.y)
-            self.img.put("blue", (frame_x // self.scale, frame_y // self.scale))
+            self.img.put(color, (frame_x // self.scale, frame_y // self.scale))
         self.refresh_display()
 
     ####

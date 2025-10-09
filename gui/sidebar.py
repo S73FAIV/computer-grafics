@@ -1,6 +1,7 @@
 import tkinter as tk
 from geometry.primitives import LineAlgorithm, Point
 from gui.state import LineModel
+import tkinter.colorchooser as colorchooser
 
 
 class Sidebar(tk.Frame):
@@ -84,6 +85,14 @@ class Sidebar(tk.Frame):
 
         tk.Button(self, text="Draw Line", command=self.draw_line).pack(pady=5)
 
+        tk.Label(self, text="Line Color:").pack(pady=5)
+        color_frame = tk.Frame(self)
+        color_frame.pack(pady=2, anchor="w")
+
+        self.color_preview = tk.Label(color_frame, bg=self.state.line_color, width=10, height=1)
+        self.color_preview.pack(side="left", pady=2)
+        tk.Button(color_frame, text="Choose Color", command=self.choose_color).pack(pady=2)
+
         # active pixels
         tk.Label(self, text="Active Pixels:").pack(pady=5)
         self.pixels_text = tk.Text(self, height=10, width=25, state="disabled")
@@ -95,6 +104,7 @@ class Sidebar(tk.Frame):
         self.start_y_var.set(self.state.start_point.y)
         self.end_x_var.set(self.state.end_point.x)
         self.end_y_var.set(self.state.end_point.y)
+        self.color_preview.config(bg=self.state.line_color)
         self.update_pixel_list()
 
     def update_algorithm(self) -> None:
@@ -116,3 +126,9 @@ class Sidebar(tk.Frame):
 
     def draw_line(self) -> None:
         self.state.draw_line()
+
+    def choose_color(self) -> None:
+        color_code = colorchooser.askcolor(title="Choose Line Color", color=self.state.line_color)
+        if color_code[1]:
+            self.state.ste_line_color(color_code[1])
+            self.color_preview.config(bg=color_code[1])

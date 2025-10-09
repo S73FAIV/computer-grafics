@@ -10,6 +10,7 @@ class LineModel:
 
     start_point: Point
     end_point: Point
+    line_color: str
     active_pixels: list[Point]
 
     def __init__(self, width, height):
@@ -19,6 +20,7 @@ class LineModel:
 
         self.start_point = Point(0, 0)  # centered coordinates
         self.end_point = Point(0, 0)  # centered coordinates
+        self.line_color = "#0000FF"
         self.active_pixels = [self.start_point, self.end_point]
         # self.active_pixels = np.zeros((height, width), dtype=bool)  # logical pixel grid
         self.algorithm = LineAlgorithm.BRESENHAM  # LineAlgorithm
@@ -67,4 +69,9 @@ class LineModel:
     def set_active_pixels(self, pixels_array: list[Point]) -> None:
         self.active_pixels = pixels_array
         print("Update active_pixels: ", self.active_pixels)
+        self.notify()
+
+    def ste_line_color(self, color: str) -> None:
+        self.line_color = color
+        print("Update line_color: ", color)
         self.notify()
