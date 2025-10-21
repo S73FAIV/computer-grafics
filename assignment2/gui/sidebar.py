@@ -13,6 +13,48 @@ class Sidebar(tk.Frame):
 
         # Draw figure
         tk.Button(self, text="(Re)Draw Figure", command=self.state.update_pixels).pack(pady=5)
+        # --- Figure info ---
+        tk.Label(self, text="Corner Points:").pack(pady=(10, 5))
+        self.pixels_text = tk.Text(self, height=2, width=25, state="disabled")
+        self.pixels_text.pack(pady=5, fill="x")
+
+        # --- Translation controls ---
+        tk.Label(self, text="Translation:").pack(pady=(10, 5))
+        trans_frame = tk.Frame(self)
+        trans_frame.pack(pady=2, anchor="w")
+
+        tk.Label(trans_frame, text="dx:").pack(side="left")
+        self.dx_var = tk.DoubleVar(value=0.0)
+        tk.Spinbox(trans_frame, from_=-20, to=20, increment=1, textvariable=self.dx_var, width=6).pack(side="left", padx=2)
+
+        tk.Label(trans_frame, text="dy:").pack(side="left")
+        self.dy_var = tk.DoubleVar(value=0.0)
+        tk.Spinbox(trans_frame, from_=-20, to=20, increment=1, textvariable=self.dy_var, width=6).pack(side="left", padx=2)
+
+        tk.Button(self, text="Apply Translation", command=self.apply_translation).pack(pady=5)
+
+        # --- Rotation controls ---
+        tk.Label(self, text="Rotation:").pack(pady=(10, 5))
+
+        rot_frame = tk.Frame(self)
+        rot_frame.pack(pady=2, anchor="w")
+
+        tk.Label(rot_frame, text="Angle (°):").pack(side="left")
+        self.rot_var = tk.DoubleVar(value=0.0)
+        tk.Spinbox(rot_frame, from_=-360, to=360, increment=1,
+                textvariable=self.rot_var, width=6).pack(side="left", padx=2)
+
+        # Checkbox for counter-clockwise
+        self.ccw_var = tk.BooleanVar(value=False)
+        tk.Checkbutton(
+            rot_frame,
+            text="CCW",
+            variable=self.ccw_var,
+            onvalue=True,
+            offvalue=False
+        ).pack(side="left", padx=4)
+
+        tk.Button(self, text="Apply Rotation", command=self.apply_rotation).pack(pady=5)
 
         # --- Color pickers ---
         tk.Label(self, text="Colors:").pack(pady=(10, 5))
@@ -29,10 +71,6 @@ class Sidebar(tk.Frame):
         self.bg_preview.pack(side="left", padx=2)
         tk.Button(bg_frame, text="Background", command=self.choose_bg_color).pack(side="left", padx=2)
 
-        # --- Figure info ---
-        tk.Label(self, text="Corner Points:").pack(pady=(10, 5))
-        self.pixels_text = tk.Text(self, height=8, width=25, state="disabled")
-        self.pixels_text.pack(pady=5, fill="x")
 
     # --- Event handlers ---
     def choose_line_color(self) -> None:
@@ -46,6 +84,17 @@ class Sidebar(tk.Frame):
         if color:
             self.state.set_bg_color(color)
             self.bg_preview.config(bg=color)
+
+    def apply_translation(self):
+        dx = self.dx_var.get()
+        dy = self.dy_var.get()
+        self.state.set_translation(dx, dy)
+
+    def apply_rotation(self) -> None:
+        angle = self.rot_var.get()
+        if not self.ccw_var.get():  # clockwise → negate
+            angle = -angle
+        self.state.set_rotation(angle)
 
     # --- State update ---
     def update_from_state(self) -> None:

@@ -22,6 +22,12 @@ class StateModel:
         self.line_color = "#0000FF"
         self.bg_color = "#EBEBEB"
 
+        # Independent transformation parameters
+        self.translation = np.array([0.0, 0.0])
+        self.rotation_deg = 0.0
+        self.rotation_direction = 1 # 1 for clockwise; -1 for counter-clockwise
+        self.scale = np.array([1.0, 1.0])
+
         # Computed render pixels
         self.active_pixels = self.trapezoid.active_pixels
 
@@ -37,6 +43,55 @@ class StateModel:
         """Notify all subscribed views of a state change."""
         for callback in self._subscribers:
             callback()
+
+    # --- Transformation handling ---
+    def set_translation(self, dx: float, dy: float):
+        self.translation = np.array([dx, dy], dtype=float)
+        self._update_geometry()
+
+    def set_rotation(self, degrees: float):
+        """Set rotation angle in degrees and update geometry."""
+        self.rotation_deg = degrees
+        self._update_geometry()
+
+    def set_scale(self, sx: float, sy: float):
+        self.scale = np.array([sx, sy], dtype=float)
+        self._update_geometry()
+
+    def _update_geometry(self):
+        matrix = self._compute_transform_matrix()
+        self.trapezoid.apply_transform(matrix)
+        self.set_active_pixels(self.trapezoid.active_pixels)
+
+    def _compute_transform_matrix(self) -> np.ndarray:
+        """Compute composite 3x3 transformation matrix from stored parameters."""
+        dx, dy = self.translation
+        angle = np.deg2rad(self.rotation_deg*self.rotation_direction)
+        sx, sy = self.scale
+
+        # Translation
+        T = np.array([
+            [1, 0, dx],
+            [0, 1, dy],
+            [0, 0, 1],
+        ])
+
+        # Rotation (about origin)
+        R = np.array([
+            [np.cos(angle), -np.sin(angle), 0],
+            [np.sin(angle),  np.cos(angle), 0],
+            [0, 0, 1],
+        ])
+
+        # Scaling
+        S = np.array([
+            [sx, 0, 0],
+            [0, sy, 0],
+            [0, 0, 1],
+        ])
+
+        # Combined: T * R * S
+        return T @ R @ S
 
     # --- State mutators ---
     def update_pixels(self) -> None:
