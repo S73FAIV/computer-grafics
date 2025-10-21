@@ -5,28 +5,25 @@ from gui.state import StateModel
 
 
 class App(tk.Tk):
-
-    state: StateModel  # our state
-    sidebar: Sidebar
-    canvas_area: PixelFrame
+    """Main application window. Holds state, sidebar (controller panel), and pixel canvas."""
 
     def __init__(self):
         super().__init__()
-        self.title("Grafic Transormation Tool")
+        self.title("Graphic Transformation Tool")
         self.geometry("1000x600")
 
-        # canvas-size
         canvas_width, canvas_height, scale = 30, 30, 20
 
+        # Central application state (Model)
         self.state = StateModel(canvas_width, canvas_height)
 
-        # Sidebar on the right
-        self.sidebar = Sidebar(parent=self, state=self.state, width=200, bg="lightgray")
+        # Sidebar (Controller)
+        self.sidebar = Sidebar(self, state=self.state, width=200, bg="lightgray")
         self.sidebar.pack(side="right", fill="y")
 
-        # Canvas on the right
+        # Canvas (View)
         self.canvas_area = PixelFrame(
-            parent=self,
+            self,
             state=self.state,
             width=canvas_width,
             height=canvas_height,
