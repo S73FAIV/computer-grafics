@@ -1,6 +1,5 @@
 import numpy as np
 from geometry.primitives import Point, Trapezoid
-import geometry.algorithms as algorithms
 
 
 class StateModel:
@@ -18,12 +17,11 @@ class StateModel:
         self.width = width
         self.height = height
 
-        self.start_point = Point(0, 0)  # centered coordinates
-        self.end_point = Point(0, 0)  # centered coordinates
+        self.trapezoid = Trapezoid(Point(-8, -2), Point(5, -2), Point(5, 5), Point(-5, 5))
+
         self.line_color = "#0000FF"
         self.bg_color = "#ebebeb"
-        self.active_pixels = [self.start_point, self.end_point]
-        # self.active_pixels = np.zeros((height, width), dtype=bool)  # logical pixel grid
+        self.active_pixels = self.trapezoid.active_pixels
 
         # Subscribers (views)
         self.subscribers = []
@@ -37,10 +35,8 @@ class StateModel:
         for callback in self.subscribers:
             callback()
 
-    def draw_line(self) -> None:
-        pixels = algorithms.get_pixels_with_bresenham(self.start_point, self.end_point)
-        # convert np-array to list
-        self.set_active_pixels([Point(x, y) for x, y in pixels])
+    def update_pixels(self) -> None:
+        self.set_active_pixels(self.trapezoid.active_pixels)
 
     # setter-methods
     def set_active_pixels(self, pixels_array: list[Point]) -> None:

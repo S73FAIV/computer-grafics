@@ -1,6 +1,5 @@
 import tkinter as tk
 import numpy as np
-from geometry.primitives import Point, Line
 from gui.state import StateModel
 
 
@@ -53,20 +52,6 @@ class PixelFrame(tk.Frame):
     ####
     # Canvas Position Transformation
     ####
-    def frame_to_coords(self, x, y) -> tuple[int, int]:
-        """
-        Convert frame coordinates (pixels, top-left origin) to centered logical coordinates.
-        """
-        # convert frame pixels to logical pixels
-        logical_x = x // self.scale
-        logical_y = y // self.scale
-
-        # shift origin to center
-        centered_x = logical_x - (self.width // 2)
-        centered_y = (self.height // 2) - logical_y  # y inverted so positive is “up”
-
-        return centered_x, centered_y
-
     def coords_to_frame(self, x, y) -> tuple[int, int]:
         """
         Convert centered logical coordinates to frame coordinates (pixels, top-left origin).
@@ -81,48 +66,3 @@ class PixelFrame(tk.Frame):
 
         return x, y
 
-    def frame_to_coords_vec(self, points: np.ndarray) -> np.ndarray:
-        """
-        Convert array of frame coordinates (pixels, top-left origin) to centered logical coordinates.
-
-        Parameters
-        ----------
-        points : np.ndarray
-            Shape (N,2), columns are [x_frame, y_frame]
-
-        Returns
-        -------
-        np.ndarray
-            Shape (N,2), columns are [x_centered, y_centered]
-        """
-        # Divide by scale to get logical pixels
-        logical = points // self.scale
-
-        # Shift origin to center and invert y
-        logical[:, 0] = logical[:, 0] - (self.width // 2)
-        logical[:, 1] = (self.height // 2) - logical[:, 1]
-
-        return logical
-
-    def coords_to_frame_vec(self, coords: np.ndarray) -> np.ndarray:
-        """
-        Convert array of centered logical coordinates to frame coordinates (pixels).
-
-        Parameters
-        ----------
-        coords : np.ndarray
-            Shape (N,2), columns are [x_centered, y_centered]
-
-        Returns
-        -------
-        np.ndarray
-            Shape (N,2), columns are [x_frame, y_frame]
-        """
-        # Shift origin back to top-left and invert y
-        frame = np.empty_like(coords)
-        frame[:, 0] = coords[:, 0] + (self.width // 2)
-        frame[:, 1] = (self.height // 2) - coords[:, 1]
-
-        # Scale up to frame pixels
-        frame *= self.scale
-        return frame

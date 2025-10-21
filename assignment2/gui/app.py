@@ -2,7 +2,6 @@ import tkinter as tk
 from gui.sidebar import Sidebar
 from gui.pixel_frame import PixelFrame
 from gui.state import StateModel
-from geometry.primitives import Line, Point
 
 
 class App(tk.Tk):
@@ -17,7 +16,7 @@ class App(tk.Tk):
         self.geometry("1000x600")
 
         # canvas-size
-        canvas_width, canvas_height = 30, 30
+        canvas_width, canvas_height, scale = 30, 30, 20
 
         self.state = StateModel(canvas_width, canvas_height)
 
@@ -31,6 +30,7 @@ class App(tk.Tk):
             state=self.state,
             width=canvas_width,
             height=canvas_height,
+            scale=scale,
             bg="white",
         )
         self.canvas_area.pack(side="right", fill="both", expand=True)
