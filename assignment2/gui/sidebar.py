@@ -25,11 +25,25 @@ class Sidebar(tk.Frame):
 
         tk.Label(trans_frame, text="dx:").pack(side="left")
         self.dx_var = tk.DoubleVar(value=0.0)
-        tk.Spinbox(trans_frame, from_=-20, to=20, increment=1, textvariable=self.dx_var, width=6).pack(side="left", padx=2)
+        tk.Spinbox(
+            trans_frame,
+            from_=-20,
+            to=20,
+            increment=1,
+            textvariable=self.dx_var,
+            width=6,
+        ).pack(side="left", padx=2)
 
         tk.Label(trans_frame, text="dy:").pack(side="left")
         self.dy_var = tk.DoubleVar(value=0.0)
-        tk.Spinbox(trans_frame, from_=-20, to=20, increment=1, textvariable=self.dy_var, width=6).pack(side="left", padx=2)
+        tk.Spinbox(
+            trans_frame,
+            from_=-20,
+            to=20,
+            increment=1,
+            textvariable=self.dy_var,
+            width=6,
+        ).pack(side="left", padx=2)
 
         # --- Rotation controls ---
         tk.Label(self, text="Rotation:").pack(pady=(10, 5))
@@ -39,17 +53,19 @@ class Sidebar(tk.Frame):
 
         tk.Label(rot_frame, text="Angle (°):").pack(side="left")
         self.rot_var = tk.DoubleVar(value=0.0)
-        tk.Spinbox(rot_frame, from_=-360, to=360, increment=1,
-                textvariable=self.rot_var, width=6).pack(side="left", padx=2)
+        tk.Spinbox(
+            rot_frame,
+            from_=-360,
+            to=360,
+            increment=1,
+            textvariable=self.rot_var,
+            width=6,
+        ).pack(side="left", padx=2)
 
         # Checkbox for counter-clockwise
         self.ccw_var = tk.BooleanVar(value=False)
         tk.Checkbutton(
-            rot_frame,
-            text="CCW",
-            variable=self.ccw_var,
-            onvalue=True,
-            offvalue=False
+            rot_frame, text="CCW", variable=self.ccw_var, onvalue=True, offvalue=False
         ).pack(side="left", padx=4)
 
         # --- Scaling controls ---
@@ -60,13 +76,74 @@ class Sidebar(tk.Frame):
 
         tk.Label(scale_frame, text="sx:").pack(side="left")
         self.sx_var = tk.DoubleVar(value=1.0)
-        tk.Spinbox(scale_frame, from_=0.1, to=5.0, increment=0.1,
-                textvariable=self.sx_var, width=6).pack(side="left", padx=2)
+        tk.Spinbox(
+            scale_frame,
+            from_=0.1,
+            to=5.0,
+            increment=0.1,
+            textvariable=self.sx_var,
+            width=6,
+        ).pack(side="left", padx=2)
 
         tk.Label(scale_frame, text="sy:").pack(side="left")
         self.sy_var = tk.DoubleVar(value=1.0)
-        tk.Spinbox(scale_frame, from_=0.1, to=5.0, increment=0.1,
-                textvariable=self.sy_var, width=6).pack(side="left", padx=2)
+        tk.Spinbox(
+            scale_frame,
+            from_=0.1,
+            to=5.0,
+            increment=0.1,
+            textvariable=self.sy_var,
+            width=6,
+        ).pack(side="left", padx=2)
+
+        # --- Skew controls ---
+        tk.Label(self, text="Skew (Shear):").pack(pady=(10, 5))
+
+        shear_frame = tk.Frame(self)
+        shear_frame.pack(pady=2, anchor="w")
+
+        tk.Label(shear_frame, text="shx (°):").pack(side="left")
+        self.shx_var = tk.DoubleVar(value=0.0)
+        tk.Spinbox(
+            shear_frame,
+            from_=-60,
+            to=60,
+            increment=1,
+            textvariable=self.shx_var,
+            width=6,
+        ).pack(side="left", padx=2)
+
+        tk.Label(shear_frame, text="shy (°):").pack(side="left")
+        self.shy_var = tk.DoubleVar(value=0.0)
+        tk.Spinbox(
+            shear_frame,
+            from_=-60,
+            to=60,
+            increment=1,
+            textvariable=self.shy_var,
+            width=6,
+        ).pack(side="left", padx=2)
+
+        # --- Reflection controls ---
+        tk.Label(self, text="Reflection (y = m*x + t):").pack(pady=(10, 5))
+
+        refl_frame = tk.Frame(self)
+        refl_frame.pack(pady=2, anchor="w")
+
+        tk.Label(refl_frame, text="m:").pack(side="left")
+        self.ref_m_var = tk.DoubleVar(value=0.0)
+        tk.Spinbox(refl_frame, from_=-5.0, to=5.0, increment=0.1,
+                textvariable=self.ref_m_var, width=6).pack(side="left", padx=2)
+
+        tk.Label(refl_frame, text="t:").pack(side="left")
+        self.ref_t_var = tk.DoubleVar(value=0.0)
+        tk.Spinbox(refl_frame, from_=-20.0, to=20.0, increment=0.5,
+                textvariable=self.ref_t_var, width=6).pack(side="left", padx=2)
+
+        self.reflection_enabled = tk.BooleanVar(value=False)
+        tk.Checkbutton(self, text="Enable Reflection",
+                    variable=self.reflection_enabled,
+                    command=self.toggle_reflection).pack(anchor="w", padx=15)
 
 
         # --- Color pickers ---
@@ -74,26 +151,35 @@ class Sidebar(tk.Frame):
 
         color_frame = tk.Frame(self)
         color_frame.pack(pady=2, anchor="w")
-        self.color_preview = tk.Label(color_frame, bg=self.state.line_color, width=10, height=1)
+        self.color_preview = tk.Label(
+            color_frame, bg=self.state.line_color, width=10, height=1
+        )
         self.color_preview.pack(side="left", padx=2)
-        tk.Button(color_frame, text="Line", command=self.choose_line_color).pack(side="left", padx=2)
+        tk.Button(color_frame, text="Line", command=self.choose_line_color).pack(
+            side="left", padx=2
+        )
 
         bg_frame = tk.Frame(self)
         bg_frame.pack(pady=2, anchor="w")
         self.bg_preview = tk.Label(bg_frame, bg=self.state.bg_color, width=10, height=1)
         self.bg_preview.pack(side="left", padx=2)
-        tk.Button(bg_frame, text="Background", command=self.choose_bg_color).pack(side="left", padx=2)
-
+        tk.Button(bg_frame, text="Background", command=self.choose_bg_color).pack(
+            side="left", padx=2
+        )
 
     # --- Event handlers ---
     def choose_line_color(self) -> None:
-        color = colorchooser.askcolor(title="Choose Line Color", color=self.state.line_color)[1]
+        color = colorchooser.askcolor(
+            title="Choose Line Color", color=self.state.line_color
+        )[1]
         if color:
             self.state.set_line_color(color)
             self.color_preview.config(bg=color)
 
     def choose_bg_color(self) -> None:
-        color = colorchooser.askcolor(title="Choose Background Color", color=self.state.bg_color)[1]
+        color = colorchooser.askcolor(
+            title="Choose Background Color", color=self.state.bg_color
+        )[1]
         if color:
             self.state.set_bg_color(color)
             self.bg_preview.config(bg=color)
@@ -102,7 +188,8 @@ class Sidebar(tk.Frame):
         self.apply_translation()
         self.apply_rotation()
         self.apply_scaling()
-        
+        self.apply_shear()
+        self.apply_reflection()
 
     def apply_translation(self):
         dx = self.dx_var.get()
@@ -119,6 +206,24 @@ class Sidebar(tk.Frame):
         sx = self.sx_var.get()
         sy = self.sy_var.get()
         self.state.set_scale(sx, sy)
+
+    def apply_shear(self) -> None:
+        shx = self.shx_var.get()
+        shy = self.shy_var.get()
+        self.state.set_shear(shx, shy)
+
+    def apply_reflection(self) -> None:
+        m = self.ref_m_var.get()
+        t = self.ref_t_var.get()
+        self.state.set_reflection(m, t)
+        self.reflection_enabled.set(True)
+
+    def toggle_reflection(self) -> None:
+        if self.reflection_enabled.get():
+            # reapply with stored parameters
+            self.apply_reflection()
+        else:
+            self.state.disable_reflection()
 
     # --- State update ---
     def update_from_state(self) -> None:
@@ -138,6 +243,8 @@ class Sidebar(tk.Frame):
         self.pixels_text.insert(tk.END, "\nTransformation matrix:\n")
         mat = self.state.transformation_matrix
         for row in mat:
-            self.pixels_text.insert(tk.END, f"{row[0]:7.3f} {row[1]:7.3f} {row[2]:7.3f}\n")
+            self.pixels_text.insert(
+                tk.END, f"{row[0]:7.3f} {row[1]:7.3f} {row[2]:7.3f}\n"
+            )
 
         self.pixels_text.configure(state="disabled")

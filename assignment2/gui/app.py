@@ -10,7 +10,7 @@ class App(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("Graphic Transformation Tool")
-        self.geometry("1000x600")
+        self.geometry("1400x1000")
 
         canvas_width, canvas_height, scale = 30, 30, 20
 

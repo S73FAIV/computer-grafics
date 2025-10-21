@@ -26,6 +26,8 @@ class StateModel:
         self.translation = np.array([0.0, 0.0])
         self.rotation_deg = 0.0
         self.scale = np.array([1.0, 1.0])
+        self.shear = np.array([0.0, 0.0])
+        self.reflection = {"enabled": False, "m": 0.0, "t": 0.0}
 
         # Computed render pixels
         self.active_pixels = self.original_trapezoid.active_pixels
@@ -57,6 +59,23 @@ class StateModel:
         self.scale = np.array([sx, sy])
         self.update_transformed()
 
+    def set_shear(self, shear_x: float, shear_y: float):
+        """Set shear (skew) angles in degrees and update geometry."""
+        self.shear = np.array([shear_x, shear_y])
+        self.update_transformed()
+
+    def set_reflection(self, m: float, t: float):
+        """Set reflection line parameters (y = m*x + t) and enable reflection."""
+        self.reflection["enabled"] = True
+        self.reflection["m"] = m
+        self.reflection["t"] = t
+        self.update_transformed()
+
+    def disable_reflection(self):
+        """Turn off reflection."""
+        self.reflection["enabled"] = False
+        self.update_transformed()
+
     def update_transformed(self):
         self.transformation_matrix = self._compute_transform_matrix()
         transformed_trapezoid = self.original_trapezoid.transformed(self.transformation_matrix)
@@ -67,6 +86,7 @@ class StateModel:
         dx, dy = self.translation
         angle = np.deg2rad(self.rotation_deg)
         sx, sy = self.scale
+        shx, shy = np.deg2rad(self.shear)
 
         # Translation
         T = np.array([
@@ -89,8 +109,46 @@ class StateModel:
             [0, 0, 1],
         ])
 
+        # --- Shear (Skew) matrix ---
+        Sh = np.array([[1, np.tan(shx), 0],
+                       [np.tan(shy), 1, 0],
+                       [0, 0, 1]])
+
         # Combined: T * R * S
-        return T @ R @ S
+        M = T @ R @ Sh @ S
+
+        # --- Reflection (if enabled) ---
+        if self.reflection["enabled"]:
+            m = self.reflection["m"]
+            t = self.reflection["t"]
+
+            # Convert y = m x + t into reflection matrix
+            theta = np.arctan(m)
+            c, s = np.cos(theta), np.sin(theta)
+
+            # Translate line to pass through origin (subtract t on Y)
+            T1 = np.array([[1, 0, 0],
+                           [0, 1, -t],
+                           [0, 0, 1]])
+
+            # Rotate line to align with x-axis
+            R1 = np.array([[c, s, 0],
+                           [-s, c, 0],
+                           [0, 0, 1]])
+
+            # Reflect about x-axis
+            RefX = np.array([[1, 0, 0],
+                             [0, -1, 0],
+                             [0, 0, 1]])
+
+            # Inverse rotation & translation
+            R2 = np.linalg.inv(R1)
+            T2 = np.linalg.inv(T1)
+
+            Ref_line = T2 @ R2 @ RefX @ R1 @ T1
+            M = Ref_line @ M
+
+        return M
 
     # --- State mutators ---
     def update_pixels(self) -> None:
