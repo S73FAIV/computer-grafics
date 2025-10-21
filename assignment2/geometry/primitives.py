@@ -62,20 +62,18 @@ class Line:
 
 
 class Trapezoid:
-    """Simple trapezoid composed of four corner points and connecting lines."""
-
+    """Static geometric definition of a trapezoid (original shape only)."""
     def __init__(self, A: Point, B: Point, C: Point, D: Point):
-        self.original_corners = [A, B, C, D]  # base geometry
         self.corners = [A, B, C, D]
-        self._rebuild_lines()
 
-    def _rebuild_lines(self):
-        self.lines = [Line(self.corners[i], self.corners[(i + 1) % 4]) for i in range(4)]
+    def transformed(self, matrix: np.ndarray) -> "Trapezoid":
+        """Return a new trapezoid with transformed corner points."""
+        transformed_corners = [p.transformed(matrix) for p in self.corners]
+        return Trapezoid(*transformed_corners)
 
-    def apply_transform(self, matrix: np.ndarray):
-        """Recompute corners and lines from transformation matrix."""
-        self.corners = [p.transformed(matrix) for p in self.original_corners]
-        self._rebuild_lines()
+    @property
+    def lines(self):
+        return [Line(self.corners[i], self.corners[(i + 1) % 4]) for i in range(4)]
 
     @property
     def active_pixels(self):

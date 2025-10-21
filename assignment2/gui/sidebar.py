@@ -12,10 +12,10 @@ class Sidebar(tk.Frame):
         self.state.subscribe(self.update_from_state)
 
         # Draw figure
-        tk.Button(self, text="(Re)Draw Figure", command=self.state.update_pixels).pack(pady=5)
+        tk.Button(self, text="(Re)Draw Figure", command=self.redraw_figure).pack(pady=5)
         # --- Figure info ---
-        tk.Label(self, text="Corner Points:").pack(pady=(10, 5))
-        self.pixels_text = tk.Text(self, height=2, width=25, state="disabled")
+        tk.Label(self, text="Info").pack(pady=(10, 5))
+        self.pixels_text = tk.Text(self, height=10, width=25, state="disabled")
         self.pixels_text.pack(pady=5, fill="x")
 
         # --- Translation controls ---
@@ -30,8 +30,6 @@ class Sidebar(tk.Frame):
         tk.Label(trans_frame, text="dy:").pack(side="left")
         self.dy_var = tk.DoubleVar(value=0.0)
         tk.Spinbox(trans_frame, from_=-20, to=20, increment=1, textvariable=self.dy_var, width=6).pack(side="left", padx=2)
-
-        tk.Button(self, text="Apply Translation", command=self.apply_translation).pack(pady=5)
 
         # --- Rotation controls ---
         tk.Label(self, text="Rotation:").pack(pady=(10, 5))
@@ -54,7 +52,22 @@ class Sidebar(tk.Frame):
             offvalue=False
         ).pack(side="left", padx=4)
 
-        tk.Button(self, text="Apply Rotation", command=self.apply_rotation).pack(pady=5)
+        # --- Scaling controls ---
+        tk.Label(self, text="Scaling:").pack(pady=(10, 5))
+
+        scale_frame = tk.Frame(self)
+        scale_frame.pack(pady=2, anchor="w")
+
+        tk.Label(scale_frame, text="sx:").pack(side="left")
+        self.sx_var = tk.DoubleVar(value=1.0)
+        tk.Spinbox(scale_frame, from_=0.1, to=5.0, increment=0.1,
+                textvariable=self.sx_var, width=6).pack(side="left", padx=2)
+
+        tk.Label(scale_frame, text="sy:").pack(side="left")
+        self.sy_var = tk.DoubleVar(value=1.0)
+        tk.Spinbox(scale_frame, from_=0.1, to=5.0, increment=0.1,
+                textvariable=self.sy_var, width=6).pack(side="left", padx=2)
+
 
         # --- Color pickers ---
         tk.Label(self, text="Colors:").pack(pady=(10, 5))
@@ -85,6 +98,12 @@ class Sidebar(tk.Frame):
             self.state.set_bg_color(color)
             self.bg_preview.config(bg=color)
 
+    def redraw_figure(self) -> None:
+        self.apply_translation()
+        self.apply_rotation()
+        self.apply_scaling()
+        
+
     def apply_translation(self):
         dx = self.dx_var.get()
         dy = self.dy_var.get()
@@ -96,6 +115,11 @@ class Sidebar(tk.Frame):
             angle = -angle
         self.state.set_rotation(angle)
 
+    def apply_scaling(self) -> None:
+        sx = self.sx_var.get()
+        sy = self.sy_var.get()
+        self.state.set_scale(sx, sy)
+
     # --- State update ---
     def update_from_state(self) -> None:
         self.color_preview.config(bg=self.state.line_color)
@@ -103,9 +127,17 @@ class Sidebar(tk.Frame):
         self._update_corner_list()
 
     def _update_corner_list(self) -> None:
-        """Display trapezoid corner coordinates."""
-        text = "; ".join(f"({p.x}, {p.y})" for p in self.state.trapezoid.corners)
+        """Display original corner points and current transformation matrix."""
         self.pixels_text.configure(state="normal")
         self.pixels_text.delete("1.0", tk.END)
-        self.pixels_text.insert(tk.END, text)
+
+        self.pixels_text.insert(tk.END, "Original corners:\n")
+        for p in self.state.original_trapezoid.corners:
+            self.pixels_text.insert(tk.END, f"({p.x}, {p.y})\n")
+
+        self.pixels_text.insert(tk.END, "\nTransformation matrix:\n")
+        mat = self.state.transformation_matrix
+        for row in mat:
+            self.pixels_text.insert(tk.END, f"{row[0]:7.3f} {row[1]:7.3f} {row[2]:7.3f}\n")
+
         self.pixels_text.configure(state="disabled")

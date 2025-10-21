@@ -11,7 +11,7 @@ class StateModel:
         self.height = height
 
         # Core geometry
-        self.trapezoid = Trapezoid(
+        self.original_trapezoid = Trapezoid(
             Point(-8, -2),
             Point(5, -2),
             Point(5, 5),
@@ -25,11 +25,11 @@ class StateModel:
         # Independent transformation parameters
         self.translation = np.array([0.0, 0.0])
         self.rotation_deg = 0.0
-        self.rotation_direction = 1 # 1 for clockwise; -1 for counter-clockwise
         self.scale = np.array([1.0, 1.0])
 
         # Computed render pixels
-        self.active_pixels = self.trapezoid.active_pixels
+        self.active_pixels = self.original_trapezoid.active_pixels
+        self.transformation_matrix = np.eye(3)
 
         # Subscriber callbacks (the Views)
         self._subscribers: list[Callable] = []
@@ -44,29 +44,28 @@ class StateModel:
         for callback in self._subscribers:
             callback()
 
-    # --- Transformation handling ---
+    # --- Transformation setters ---
     def set_translation(self, dx: float, dy: float):
-        self.translation = np.array([dx, dy], dtype=float)
-        self._update_geometry()
+        self.translation = np.array([dx, dy])
+        self.update_transformed()
 
     def set_rotation(self, degrees: float):
-        """Set rotation angle in degrees and update geometry."""
         self.rotation_deg = degrees
-        self._update_geometry()
+        self.update_transformed()
 
     def set_scale(self, sx: float, sy: float):
-        self.scale = np.array([sx, sy], dtype=float)
-        self._update_geometry()
+        self.scale = np.array([sx, sy])
+        self.update_transformed()
 
-    def _update_geometry(self):
-        matrix = self._compute_transform_matrix()
-        self.trapezoid.apply_transform(matrix)
-        self.set_active_pixels(self.trapezoid.active_pixels)
+    def update_transformed(self):
+        self.transformation_matrix = self._compute_transform_matrix()
+        transformed_trapezoid = self.original_trapezoid.transformed(self.transformation_matrix)
+        self.set_active_pixels(transformed_trapezoid.active_pixels)
 
     def _compute_transform_matrix(self) -> np.ndarray:
         """Compute composite 3x3 transformation matrix from stored parameters."""
         dx, dy = self.translation
-        angle = np.deg2rad(self.rotation_deg*self.rotation_direction)
+        angle = np.deg2rad(self.rotation_deg)
         sx, sy = self.scale
 
         # Translation
@@ -96,19 +95,19 @@ class StateModel:
     # --- State mutators ---
     def update_pixels(self) -> None:
         """Recompute the active pixels from the trapezoid geometry."""
-        self.set_active_pixels(self.trapezoid.active_pixels)
+        self.update_transformed()
 
     def set_active_pixels(self, pixels: list[Point]) -> None:
         self.active_pixels = pixels
-        print("DEBUG: state.set_active_pixels: ", self.active_pixels)
+        #print("DEBUG: state.set_active_pixels: ", self.active_pixels)
         self.notify()
 
     def set_line_color(self, color: str) -> None:
         self.line_color = color
-        print("DEBUG: state.line_color: ", self.line_color)
+        #print("DEBUG: state.line_color: ", self.line_color)
         self.notify()
 
     def set_bg_color(self, color: str) -> None:
         self.bg_color = color
-        print("DEBUG: state.bg_color: ", self.bg_color)
+        #print("DEBUG: state.bg_color: ", self.bg_color)
         self.notify()
