@@ -111,14 +111,17 @@ def get_pixels_with_bresenham(start_point: Point, end_point: Point) -> np.ndarra
     x0, y0 = start_point.x, start_point.y
     x1, y1 = end_point.x, end_point.y
 
-    # Horizontal line
-    if x0 == x1:
-        return get_straight_horizontal(start_point, end_point)
-        # Vertical line
-    if y0 == y1:
+    dx = x1 - x0
+    dy = y1 -y0
+    
+    # Vertical line
+    if dx == 0:
         return get_straight_vertical(start_point, end_point)
+    # Horizontal line
+    if dy == 0:
+        return get_straight_horizontal(start_point, end_point)
     # Perfect diagonal
-    if abs(y1 -y0) == abs(x1 - x0):
+    if abs(dx) == abs(dy):
         return get_perfect_diagonal(start_point, end_point)
 
 
