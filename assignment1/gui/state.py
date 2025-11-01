@@ -7,6 +7,7 @@ class LineModel:
 
     width: int
     height: int
+    scale: int
 
     start_point: Point
     end_point: Point
@@ -18,6 +19,7 @@ class LineModel:
         # width and height of the pixel-field in shown? pixels
         self.width = width
         self.height = height
+        self.scale = 20
 
         self.start_point = Point(0, 0)  # centered coordinates
         self.end_point = Point(0, 0)  # centered coordinates
@@ -83,3 +85,13 @@ class LineModel:
         print("Update bg_color:", color)
         self.notify()
 
+    def set_size(self, height: int, width: int) -> None:
+        self.width = width
+        self.height = height
+        print("Update width:", width)
+        print("Update height:", height)
+        self.notify()
+
+    def set_grid_size(self, scale: int) -> None:
+        self.scale = scale
+        self.notify()

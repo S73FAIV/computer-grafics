@@ -62,6 +62,12 @@ class PixelFrame(tk.Frame):
         self.redraw()
 
     def redraw(self) -> None:
+        # get size from state
+        self.width = self.state.width
+        self.height = self.state.height
+        self.scale = self.state.scale
+
+
         self.img = tk.PhotoImage(width=self.width, height=self.height)
 
         # Fill background

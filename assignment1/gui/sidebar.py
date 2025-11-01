@@ -100,6 +100,45 @@ class Sidebar(tk.Frame):
         self.bg_preview.pack(side="left", padx=2)
         tk.Button(bg_frame, text="Choose Color", command=self.choose_bg_color).pack(side="left", padx=2)
 
+        # Canvas Size
+        size_frame = tk.Frame(self)
+        size_frame.pack(anchor="w", pady=2)
+        tk.Label(size_frame, text="Canvas Size (height x width):").pack(side="left")
+        self.height_var = tk.IntVar(value=0)
+        self.width_var = tk.IntVar(value=0)
+        tk.Spinbox(
+            size_frame,
+            from_=10,
+            to=400,
+            increment=5,
+            textvariable=self.height_var,
+            width=4
+        ).pack(side="left")
+        tk.Spinbox(
+            size_frame,
+            from_=10,
+            to=400,
+            increment=5,
+            textvariable=self.width_var,
+            width=4
+        ).pack(side="left")
+        tk.Button(size_frame, command=self.update_canvas_size, text="Update").pack(side="left")
+
+        # Canvas Size
+        scale_frame = tk.Frame(self)
+        scale_frame.pack(anchor="w", pady=2)
+        tk.Label(scale_frame, text="Pixel-Size").pack(side="left")
+        self.scale_var = tk.IntVar(value=0)
+        tk.Spinbox(
+            scale_frame,
+            from_=1,
+            to=40,
+            increment=1,
+            textvariable=self.scale_var,
+            width=4
+        ).pack(side="left")
+        tk.Button(scale_frame, command=self.update_canvas_scale, text="Update").pack(side="left")
+
         # active pixels
         tk.Label(self, text="Active Pixels:").pack(pady=5)
         self.pixels_text = tk.Text(self, height=10, width=25, state="disabled")
@@ -111,6 +150,9 @@ class Sidebar(tk.Frame):
         self.start_y_var.set(self.state.start_point.y)
         self.end_x_var.set(self.state.end_point.x)
         self.end_y_var.set(self.state.end_point.y)
+        self.height_var.set(self.state.height)
+        self.width_var.set(self.state.width)
+        self.scale_var.set(self.state.scale)
         self.color_preview.config(bg=self.state.line_color)
         self.bg_preview.config(bg=self.state.bg_color)
         self.update_pixel_list()
@@ -131,6 +173,12 @@ class Sidebar(tk.Frame):
         for pixel in self.state.active_pixels:
             self.pixels_text.insert(tk.END, f"({pixel.x}, {pixel.y});")
         self.pixels_text.configure(state="disabled")
+
+    def update_canvas_size(self) -> None:
+        self.state.set_size(height=self.height_var.get(), width=self.width_var.get())
+
+    def update_canvas_scale(self) -> None:
+        self.state.set_grid_size(self.scale_var.get())
 
     def draw_line(self) -> None:
         self.state.draw_line()
