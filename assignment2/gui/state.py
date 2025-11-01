@@ -9,6 +9,7 @@ class StateModel:
     def __init__(self, width: int, height: int):
         self.width = width
         self.height = height
+        self.canvas_scale = 20
 
         # Core geometry
         self.original_trapezoid = Trapezoid(
@@ -168,4 +169,15 @@ class StateModel:
     def set_bg_color(self, color: str) -> None:
         self.bg_color = color
         #print("DEBUG: state.bg_color: ", self.bg_color)
+        self.notify()
+
+    def set_size(self, height: int, width: int) -> None:
+        self.width = width
+        self.height = height
+        print("Update width:", width)
+        print("Update height:", height)
+        self.notify()
+
+    def set_grid_size(self, scale: int) -> None:
+        self.canvas_scale = scale
         self.notify()

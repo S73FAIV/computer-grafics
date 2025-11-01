@@ -22,6 +22,13 @@ class PixelFrame(tk.Frame):
 
     def redraw(self) -> None:
         """Rebuild image based on model state."""
+        # get size from state
+        self.width = self.state.width
+        self.height = self.state.height
+        self.scale = self.state.canvas_scale
+
+        self.img = tk.PhotoImage(width=self.width, height=self.height)
+
         # Background fill
         bg = self.state.bg_color
         for x in range(self.width):
