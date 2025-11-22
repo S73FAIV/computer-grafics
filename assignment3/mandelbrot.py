@@ -8,6 +8,7 @@ Usage:
 
 import os
 import numpy as np
+import matplotlib.pyplot as plt
 from PIL import Image
 
 OUT_DIR = "out"
@@ -75,7 +76,7 @@ def mandelbrot(width=1200, height=900, xlim=(-2.5, 1.0), ylim=(-1.25, 1.25), max
     return nu
 
 
-def normalize_to_image(arr, cmap="hot"):
+def normalize_to_image(arr, cmap_name="plasma"):
     """
     Convert the float array `arr` into an RGB image.
     `arr` expected to be non-negative; higher -> brighter/colorful.
@@ -89,21 +90,14 @@ def normalize_to_image(arr, cmap="hot"):
     else:
         norm = np.zeros_like(a)
 
-    # apply a simple palette: map t in [0,1] to RGB using an HSV-like ramp
-    # we'll use an easy matplotlib-free gradient: black -> blue -> cyan -> yellow -> white
-    def ramp(t):
-        # t: ndarray 0..1
-        r = np.minimum(1.5 * t, 1.0)
-        g = np.minimum(np.maximum(0.0, 3.0 * (t - 0.25)), 1.0)
-        b = np.minimum(np.maximum(0.0, 4.0 * (0.5 - np.abs(t - 0.5))), 1.0)
-        return (r, g, b)
+    # logarithmic scaling to emphasize fine details
+    norm = np.log1p(norm * 10) / np.log1p(10)
 
-    r, g, b = ramp(norm)
-    rgb = np.dstack(
-        (np.clip((r * 255).astype(np.uint8), 0, 255),
-         np.clip((g * 255).astype(np.uint8), 0, 255),
-         np.clip((b * 255).astype(np.uint8), 0, 255))
-    )
+    cmap = plt.get_cmap(cmap_name)
+    # cmap returns RGBA floats in 0..1
+    rgb_float = cmap(norm)[..., :3]  # drop alpha channel
+    rgb = (rgb_float * 255).astype(np.uint8)
+
     return Image.fromarray(rgb, mode="RGB")
 
 
