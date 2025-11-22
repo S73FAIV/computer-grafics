@@ -1,6 +1,7 @@
 import tkinter as tk
 import tkinter.colorchooser as colorchooser
 from gui.state import StateModel
+import numpy as np
 
 
 class Sidebar(tk.Frame):
@@ -11,12 +12,15 @@ class Sidebar(tk.Frame):
         self.state = state
         self.state.subscribe(self.update_from_state)
 
-        # Draw figure
-        tk.Button(self, text="(Re)Draw Figure", command=self.redraw_figure).pack(pady=5)
+        # # Draw figure
+        # tk.Button(self, text="(Re)Draw Figure", command=self.redraw_figure).pack(pady=5)
         # --- Figure info ---
         tk.Label(self, text="Info").pack(pady=(10, 5))
         self.pixels_text = tk.Text(self, height=10, width=25, state="disabled")
         self.pixels_text.pack(pady=5, fill="x")
+
+        # Apply button
+        tk.Button(self, text="Reset Transforms", command=self.reset_transform).pack(pady=5)
 
         # --- Translation controls ---
         tk.Label(self, text="Translation:").pack(pady=(10, 5))
@@ -44,7 +48,9 @@ class Sidebar(tk.Frame):
             textvariable=self.dy_var,
             width=6,
         ).pack(side="left", padx=2)
-
+        # Apply button
+        tk.Button(trans_frame, text="Apply Transl.", command=self.apply_translation).pack(pady=5)
+        
         # --- Rotation controls ---
         tk.Label(self, text="Rotation:").pack(pady=(10, 5))
 
@@ -67,7 +73,9 @@ class Sidebar(tk.Frame):
         tk.Checkbutton(
             rot_frame, text="CCW", variable=self.ccw_var, onvalue=True, offvalue=False
         ).pack(side="left", padx=4)
-
+        # Apply button
+        tk.Button(rot_frame, text="Apply Rot.", command=self.apply_rotation).pack(pady=5)
+        
         # --- Scaling controls ---
         tk.Label(self, text="Scaling:").pack(pady=(10, 5))
 
@@ -95,7 +103,9 @@ class Sidebar(tk.Frame):
             textvariable=self.sy_var,
             width=6,
         ).pack(side="left", padx=2)
-
+        # Apply button
+        tk.Button(scale_frame, text="Apply Scale", command=self.apply_scaling).pack(pady=5)
+        
         # --- Skew controls ---
         tk.Label(self, text="Skew (Shear):").pack(pady=(10, 5))
 
@@ -123,7 +133,9 @@ class Sidebar(tk.Frame):
             textvariable=self.shy_var,
             width=6,
         ).pack(side="left", padx=2)
-
+        # Apply button
+        tk.Button(shear_frame, text="Apply Skew", command=self.apply_shear).pack(pady=5)
+        
         # --- Reflection controls ---
         tk.Label(self, text="Reflection (y = m*x + t):").pack(pady=(10, 5))
 
@@ -132,19 +144,28 @@ class Sidebar(tk.Frame):
 
         tk.Label(refl_frame, text="m:").pack(side="left")
         self.ref_m_var = tk.DoubleVar(value=0.0)
-        tk.Spinbox(refl_frame, from_=-5.0, to=5.0, increment=0.1,
-                textvariable=self.ref_m_var, width=6).pack(side="left", padx=2)
+        tk.Spinbox(
+            refl_frame,
+            from_=-5.0,
+            to=5.0,
+            increment=0.1,
+            textvariable=self.ref_m_var,
+            width=6,
+        ).pack(side="left", padx=2)
 
         tk.Label(refl_frame, text="t:").pack(side="left")
         self.ref_t_var = tk.DoubleVar(value=0.0)
-        tk.Spinbox(refl_frame, from_=-20.0, to=20.0, increment=0.5,
-                textvariable=self.ref_t_var, width=6).pack(side="left", padx=2)
-
-        self.reflection_enabled = tk.BooleanVar(value=False)
-        tk.Checkbutton(self, text="Enable Reflection",
-                    variable=self.reflection_enabled,
-                    command=self.toggle_reflection).pack(anchor="w", padx=15)
-
+        tk.Spinbox(
+            refl_frame,
+            from_=-20.0,
+            to=20.0,
+            increment=0.5,
+            textvariable=self.ref_t_var,
+            width=6,
+        ).pack(side="left", padx=2)
+        # Apply button
+        tk.Button(refl_frame, text="Apply Refl.", command=self.apply_reflection).pack(pady=5)
+        tk.Button(self, text="Reflect on x=0", command=self.apply_reflection_x).pack(pady=5)
         # Canvas Size
         size_frame = tk.Frame(self)
         size_frame.pack(anchor="w", pady=2)
@@ -157,7 +178,7 @@ class Sidebar(tk.Frame):
             to=400,
             increment=5,
             textvariable=self.height_var,
-            width=4
+            width=4,
         ).pack(side="left")
         tk.Spinbox(
             size_frame,
@@ -165,9 +186,11 @@ class Sidebar(tk.Frame):
             to=400,
             increment=5,
             textvariable=self.width_var,
-            width=4
+            width=4,
         ).pack(side="left")
-        tk.Button(size_frame, command=self.update_canvas_size, text="Update").pack(side="left")
+        tk.Button(size_frame, command=self.update_canvas_size, text="Update").pack(
+            side="left"
+        )
 
         # Canvas Size
         scale_frame = tk.Frame(self)
@@ -180,9 +203,11 @@ class Sidebar(tk.Frame):
             to=40,
             increment=1,
             textvariable=self.scale_var,
-            width=4
+            width=4,
         ).pack(side="left")
-        tk.Button(scale_frame, command=self.update_canvas_scale, text="Update").pack(side="left")
+        tk.Button(scale_frame, command=self.update_canvas_scale, text="Update").pack(
+            side="left"
+        )
 
         # --- Color pickers ---
         tk.Label(self, text="Colors:").pack(pady=(10, 5))
@@ -222,46 +247,70 @@ class Sidebar(tk.Frame):
             self.state.set_bg_color(color)
             self.bg_preview.config(bg=color)
 
-    def redraw_figure(self) -> None:
-        self.apply_translation()
-        self.apply_rotation()
-        self.apply_scaling()
-        self.apply_shear()
-        self.apply_reflection()
-
     def apply_translation(self):
         dx = self.dx_var.get()
         dy = self.dy_var.get()
-        self.state.set_translation(dx, dy)
+        M = np.array([[1, 0, dx], [0, 1, dy], [0, 0, 1]])
+        self.state.apply_matrix(M)
 
-    def apply_rotation(self) -> None:
+    def apply_rotation(self):
         angle = self.rot_var.get()
-        if not self.ccw_var.get():  # clockwise → negate
+        if not self.ccw_var.get():
             angle = -angle
-        self.state.set_rotation(angle)
+        a = np.deg2rad(angle)
+        M = np.array([[np.cos(a), -np.sin(a), 0], [np.sin(a), np.cos(a), 0], [0, 0, 1]])
+        self.state.apply_matrix(M)
 
     def apply_scaling(self) -> None:
         sx = self.sx_var.get()
         sy = self.sy_var.get()
-        self.state.set_scale(sx, sy)
+        M = np.array([[sx, 0, 0], [0, sy, 0], [0, 0, 1]])
+        self.state.apply_matrix(M)
 
     def apply_shear(self) -> None:
-        shx = self.shx_var.get()
-        shy = self.shy_var.get()
-        self.state.set_shear(shx, shy)
+        shx = np.deg2rad(self.shx_var.get())
+        shy = np.deg2rad(self.shy_var.get())
+        M = np.array([[1, np.tan(shx), 0], [np.tan(shy), 1, 0], [0, 0, 1]])
+        self.state.apply_matrix(M)
 
     def apply_reflection(self) -> None:
         m = self.ref_m_var.get()
         t = self.ref_t_var.get()
-        self.state.set_reflection(m, t)
-        self.reflection_enabled.set(True)
 
-    def toggle_reflection(self) -> None:
-        if self.reflection_enabled.get():
-            # reapply with stored parameters
-            self.apply_reflection()
-        else:
-            self.state.disable_reflection()
+        theta = np.arctan(m)
+        c, s = np.cos(theta), np.sin(theta)
+
+        T1 = np.array([[1, 0, 0], [0, 1, -t], [0, 0, 1]])
+
+        R1 = np.array([[c, s, 0], [-s, c, 0], [0, 0, 1]])
+
+        RefX = np.array([[1, 0, 0], [0, -1, 0], [0, 0, 1]])
+
+        R2 = np.linalg.inv(R1)
+        T2 = np.linalg.inv(T1)
+
+        M = T2 @ R2 @ RefX @ R1 @ T1
+
+        self.state.apply_matrix(M)
+
+    def apply_reflection_x(self):
+        """
+        Reflect the figure across the vertical axis x = 0.
+        Matrix form:
+            [ -1   0   0 ]
+            [  0   1   0 ]
+            [  0   0   1 ]
+        """
+        M = np.array([
+            [-1,  0, 0],
+            [ 0,  1, 0],
+            [ 0,  0, 1],
+        ])
+        self.state.apply_matrix(M)
+
+
+    def reset_transform(self):
+        self.state.reset_matrix()
 
     def update_canvas_size(self) -> None:
         self.state.set_size(height=self.height_var.get(), width=self.width_var.get())
